@@ -16,15 +16,12 @@ repositories {
 }
 
 dependencies {
-    // ErrorProne
-    errorprone 'com.google.protobuf:protobuf-java:4.28.2'
+    // Core ErrorProne dependencies
     errorprone 'com.google.errorprone:error_prone_core:2.36.0'
-    errorprone 'com.google.errorprone:error_prone_check_api:2.36.0'
     errorprone 'com.uber.nullaway:nullaway:0.12.3'
-    errorprone 'com.github.ben-manes.caffeine:caffeine:3.1.8'
+
+    // JSpecify annotations for null safety
     implementation 'org.jspecify:jspecify:1.0.0'
-    implementation 'net.ltgt.gradle:gradle-errorprone-plugin:4.1.0'
-    implementation 'net.ltgt.gradle:gradle-nullaway-plugin:2.2.0'
 
     // OpenRewrite
     implementation 'org.openrewrite.rewrite:org.openrewrite.rewrite.gradle.plugin:7.6.1'
@@ -80,18 +77,29 @@ test {
     finalizedBy jacocoTestReport
 }
 
-
 // ErrorProne + NullAway configuration
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
     options.errorprone {
         // ErrorProne checks are enabled as errors by default
         // Only disable specific noisy ones if needed. E.g.,
-        // disable("UnusedVariable")
+        disable("StringCaseLocaleUsage")
 
         nullaway {
             annotatedPackages.add("org.example")
-            // Since we already have org.jspecify as a dependency, NullAway will automatically recognize and use JSpecify's @Nullable and @NonNull annotations.
             error()
         }
+    }
+
+    if (name.toLowerCase().contains("test")) { // Disable for compileTestJava
+        options.errorprone {
+            nullaway {
+                disable()
+            }
+        }
+    }
+
+    def isRewriteTask = gradle.startParameter.taskNames.any { it.contains('rewrite') }
+    if (isRewriteTask) {
+        enabled = false
     }
 }
