@@ -1,0 +1,187 @@
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: NormalizeNullableAnnotationsOnMethods
+displayName: Enforce Consistent @Nullable Annotation Usage on Methods
+description: >-
+  This recipe enforces consistent usage of a specified `@Nullable` annotation on methods.
+  It first standardizes the `@Nullable` annotation to a single type, ensuring no duplicates exist.
+  Then, it annotates methods that explicitly return `null` with the specified `@Nullable` annotation.
+  Finally, it ensures that all `@Nullable` annotations on method return types are consistently placed
+  after the access modifiers and before the return type.
+preconditions:
+  - org.openrewrite.java.search.IsLikelyNotTest
+recipeList:
+  # Import normalization
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: jakarta.annotation.Nullable
+      newFullyQualifiedTypeName: org.jspecify.annotations.Nullable
+
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: javax.annotation.Nullable
+      newFullyQualifiedTypeName: org.jspecify.annotations.Nullable
+
+  - org.openrewrite.java.ChangeType:
+      oldFullyQualifiedTypeName: org.jetbrains.annotations.Nullable
+      newFullyQualifiedTypeName: org.jspecify.annotations.Nullable
+
+  # Add @Nullable annotation to methods that return null
+  - org.openrewrite.staticanalysis.AnnotateNullableMethods:
+      nullableAnnotationClass: org.jspecify.annotations.Nullable
+
+  # Consistently place annotation after the access modifiers and before the return type
+  - org.openrewrite.staticanalysis.NullableOnMethodReturnType:
+      annotationPattern: org.jspecify.annotations.Nullable
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: CleanCode
+displayName: Remove unused code
+description: Remove unused code
+preconditions:
+  - org.openrewrite.java.search.IsLikelyNotTest
+recipeList:
+  - org.openrewrite.staticanalysis.RemoveUnneededBlock
+  - org.openrewrite.staticanalysis.RemoveUnusedLocalVariables
+  - org.openrewrite.staticanalysis.RemoveUnusedPrivateFields
+  - org.openrewrite.staticanalysis.RemoveUnusedPrivateMethods
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: CommonStaticAnalysis
+displayName: Common Static Analysis
+description: This recipe performs common static analysis tasks
+preconditions:
+  - org.openrewrite.java.search.IsLikelyNotTest
+recipeList:
+  - org.openrewrite.staticanalysis.AbstractClassPublicConstructor
+  - org.openrewrite.staticanalysis.AtomicPrimitiveEqualsUsesGet
+  - org.openrewrite.staticanalysis.BigDecimalDoubleConstructorRecipe
+  - org.openrewrite.staticanalysis.BigDecimalRoundingConstantsToEnums
+  - org.openrewrite.staticanalysis.BooleanChecksNotInverted
+  - org.openrewrite.staticanalysis.CaseInsensitiveComparisonsDoNotChangeCase
+  - org.openrewrite.staticanalysis.CatchClauseOnlyRethrows
+  - org.openrewrite.staticanalysis.ChainStringBuilderAppendCalls
+  - org.openrewrite.staticanalysis.CovariantEquals
+  - org.openrewrite.staticanalysis.DefaultComesLast
+  - org.openrewrite.staticanalysis.EmptyBlock
+  - org.openrewrite.staticanalysis.EqualsAvoidsNull
+  - org.openrewrite.staticanalysis.ExplicitInitialization
+  - org.openrewrite.staticanalysis.ExternalizableHasNoArgsConstructor
+  - org.openrewrite.staticanalysis.FinalizePrivateFields
+  - org.openrewrite.staticanalysis.FallThrough
+  - org.openrewrite.staticanalysis.FinalClass
+  - org.openrewrite.staticanalysis.FixStringFormatExpressions
+  - org.openrewrite.staticanalysis.ForLoopIncrementInUpdate
+  - org.openrewrite.staticanalysis.IndexOfChecksShouldUseAStartPosition
+  - org.openrewrite.staticanalysis.IndexOfReplaceableByContains
+  - org.openrewrite.staticanalysis.IndexOfShouldNotCompareGreaterThanZero
+  - org.openrewrite.staticanalysis.InlineVariable
+  - org.openrewrite.staticanalysis.IsEmptyCallOnCollections
+  - org.openrewrite.staticanalysis.LambdaBlockToExpression
+  - org.openrewrite.staticanalysis.MethodNameCasing
+  - org.openrewrite.staticanalysis.MinimumSwitchCases
+  - org.openrewrite.staticanalysis.ModifierOrder
+  - org.openrewrite.staticanalysis.MultipleVariableDeclarations
+  - org.openrewrite.staticanalysis.NeedBraces
+  - org.openrewrite.staticanalysis.NestedEnumsAreNotStatic
+  - org.openrewrite.staticanalysis.NewStringBuilderBufferWithCharArgument
+  - org.openrewrite.staticanalysis.NoDoubleBraceInitialization
+  - org.openrewrite.staticanalysis.NoEmptyCollectionWithRawType
+  - org.openrewrite.staticanalysis.NoEqualityInForCondition
+  - org.openrewrite.staticanalysis.NoFinalizer
+  - org.openrewrite.staticanalysis.NoPrimitiveWrappersForToStringOrCompareTo
+  - org.openrewrite.staticanalysis.NoRedundantJumpStatements
+  - org.openrewrite.staticanalysis.NoToStringOnStringType
+  - org.openrewrite.staticanalysis.NoValueOfOnStringType
+  - org.openrewrite.staticanalysis.ObjectFinalizeCallsSuper
+  - org.openrewrite.staticanalysis.PrimitiveWrapperClassConstructorToValueOf
+  - org.openrewrite.staticanalysis.RedundantFileCreation
+  - org.openrewrite.staticanalysis.RemoveExtraSemicolons
+  - org.openrewrite.staticanalysis.RenameMethodsNamedHashcodeEqualOrToString
+  - org.openrewrite.staticanalysis.ReplaceClassIsInstanceWithInstanceof
+  - org.openrewrite.staticanalysis.ReplaceLambdaWithMethodReference
+  - org.openrewrite.staticanalysis.ReplaceStringBuilderWithString
+  - org.openrewrite.staticanalysis.SimplifyBooleanExpression
+  - org.openrewrite.staticanalysis.SimplifyBooleanReturn
+  - org.openrewrite.staticanalysis.StaticMethodNotFinal
+  - org.openrewrite.staticanalysis.StringLiteralEquality
+  - org.openrewrite.staticanalysis.UnnecessaryCloseInTryWithResources
+  - org.openrewrite.staticanalysis.UnnecessaryExplicitTypeArguments
+  - org.openrewrite.staticanalysis.UnnecessaryParentheses
+  - org.openrewrite.staticanalysis.UnnecessaryPrimitiveAnnotations
+  - org.openrewrite.staticanalysis.UnnecessaryReturnAsLastStatement
+  - org.openrewrite.staticanalysis.UpperCaseLiteralSuffixes
+  - org.openrewrite.staticanalysis.UseDiamondOperator
+  - org.openrewrite.staticanalysis.UseJavaStyleArrayDeclarations
+  - org.openrewrite.staticanalysis.WhileInsteadOfFor
+  - org.openrewrite.staticanalysis.WriteOctalValuesAsDecimal
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: MigrateToLog4j2
+displayName: Migrate Logging to Log4j2
+description: >-
+  This recipe automates the migration of both Log4j and SLF4j logging frameworks to Log4j2.
+  It handles dependency updates, API changes, and configuration adjustments to ensure a smooth transition to Log4j2.
+preconditions:
+  - org.openrewrite.java.search.IsLikelyNotTest
+recipeList:
+  - org.openrewrite.java.logging.log4j.Slf4jToLog4j
+  - org.openrewrite.java.logging.log4j.Log4j1ToLog4j2
+
+---
+type: specs.openrewrite.org/v1beta/recipe
+name: MigrateToAssertJ
+displayName: Migrate JUnit Assertions to AssertJ and Apply Best Practices
+description: >-
+  This recipe automates the migration of JUnit-style assertions to the more expressive AssertJ library.
+  It performs a comprehensive conversion of common JUnit assertions to their AssertJ equivalents and
+  applies a set of AssertJ best practices to enhance the readability and maintainability of tests.
+  This includes collapsing consecutive assertions, simplifying existing AssertJ assertions, and enforcing
+  the use of static imports for AssertJ methods.
+preconditions:
+  - org.openrewrite.java.search.IsLikelyTest
+recipeList:
+  # Cleanup
+  - org.openrewrite.java.testing.cleanup.BestPractices # Applies best practices to tests. Includes TestsShouldIncludeAssertions and RemoveTestPrefix
+
+  # JUnit to Assertj
+  - org.openrewrite.java.testing.assertj.CollapseConsecutiveAssertThatStatements # Collapse consecutive assertThat statements into single assertThat chained statement
+  - org.openrewrite.java.testing.assertj.JUnitAssertArrayEqualsToAssertThat # Convert JUnit-style assertArrayEquals() to AssertJ's assertThat().contains() equivalents
+  - org.openrewrite.java.testing.assertj.JUnitAssertEqualsToAssertThat # Convert JUnit-style assertEquals() to AssertJ's assertThat().isEqualTo()
+  - org.openrewrite.java.testing.assertj.JUnitAssertFalseToAssertThat # Convert JUnit-style assertFalse() to AssertJ's assertThat().isFalse()
+  - org.openrewrite.java.testing.assertj.JUnitAssertInstanceOfToAssertThat # Convert JUnit-style assertInstanceOf() to AssertJ's assertThat().isInstanceOf()
+  - org.openrewrite.java.testing.assertj.JUnitAssertNotEqualsToAssertThat # Convert JUnit-style assertNotEquals() to AssertJ's assertThat().isNotEqualTo()
+  - org.openrewrite.java.testing.assertj.JUnitAssertNotNullToAssertThat # Convert JUnit-style assertNotNull() to AssertJ's assertThat().isNotNull()
+  - org.openrewrite.java.testing.assertj.JUnitAssertNullToAssertThat # Convert JUnit-style assertNull() to AssertJ's assertThat().isNull()
+  - org.openrewrite.java.testing.assertj.JUnitAssertSameToAssertThat # Convert JUnit-style assertSame() to AssertJ's assertThat().isSameAs()
+  - org.openrewrite.java.testing.assertj.JUnitAssertThrowsToAssertExceptionType # Convert JUnit#AssertThrows to AssertJ#assertThatExceptionOfType to allow for chained assertions on the thrown exception
+  - org.openrewrite.java.testing.assertj.JUnitAssertTrueToAssertThat # Convert JUnit-style assertTrue() to AssertJ's assertThat().isTrue()
+  - org.openrewrite.java.testing.assertj.JUnitFailToAssertJFail # Convert JUnit-style fail() to AssertJ's fail()
+
+  # Assertj best practices
+  - org.openrewrite.java.testing.assertj.Assertj # Migrates JUnit asserts to AssertJ and applies best practices to assertions
+  - org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertion # Many AssertJ chained assertions have dedicated assertions that function the same. It is best to use the dedicated assertions
+  - org.openrewrite.java.testing.assertj.SimplifyChainedAssertJAssertions # Replace AssertJ assertions where a method is called on the actual value with a dedicated assertion
+  - org.openrewrite.java.testing.assertj.SimplifyHasSizeAssertion # Simplify AssertJ assertions by replacing hasSize with hasSameSizeAs dedicated assertions
+  - org.openrewrite.java.testing.assertj.StaticImports # Consistently use a static import rather than inlining the Assertions class name in tests
+
+  # Errorprone
+  - tech.picnic.errorprone.refasterrules.AssertJBigDecimalRulesRecipes
+  - tech.picnic.errorprone.refasterrules.AssertJBigIntegerRulesRecipes
+  - tech.picnic.errorprone.refasterrules.AssertJBooleanRulesRecipes
+  - tech.picnic.errorprone.refasterrules.AssertJByteRulesRecipes
+  - tech.picnic.errorprone.refasterrules.AssertJCharSequenceRulesRecipes
+  - tech.picnic.errorprone.refasterrules.AssertJDoubleRulesRecipes
+  - tech.picnic.errorprone.refasterrules.AssertJFloatRulesRecipes
+  - tech.picnic.errorprone.refasterrules.AssertJIntegerRulesRecipes
+  - tech.picnic.errorprone.refasterrules.AssertJLongRulesRecipes
+  - tech.picnic.errorprone.refasterrules.AssertJNumberRulesRecipes
+  - tech.picnic.errorprone.refasterrules.AssertJPrimitiveRulesRecipes
+  - tech.picnic.errorprone.refasterrules.AssertJRulesRecipes
+  - tech.picnic.errorprone.refasterrules.AssertJShortRulesRecipes
+  - tech.picnic.errorprone.refasterrules.AssertJStringRulesRecipes
+  - tech.picnic.errorprone.refasterrules.AssertJThrowingCallableRulesRecipes
+
+  # Hamcrest to Assertj
+  - org.openrewrite.java.testing.hamcrest.MigrateHamcrestToAssertJ # Migrate Hamcrest assertThat(..) to AssertJ Assertions

@@ -1,0 +1,10 @@
+repos:
+  - repo: local
+    hooks:
+      - id: spotless-apply
+        name: Spotless Apply
+        entry: python hooks/spotless-apply.py
+        language: system
+        types: [java]
+        pass_filenames: false
+        stages: [pre-commit]

@@ -1,0 +1,97 @@
+plugins {
+    id 'java'
+    id 'jacoco'
+    id 'net.ltgt.errorprone' version '4.2.0'
+    id 'net.ltgt.nullaway' version '2.2.0'
+    id 'org.openrewrite.rewrite' version '7.6.1'
+    id 'com.diffplug.spotless' version '7.0.3'
+}
+
+group = 'org.example'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    gradlePluginPortal()
+    mavenCentral()
+}
+
+dependencies {
+    // ErrorProne
+    errorprone 'com.google.protobuf:protobuf-java:4.28.2'
+    errorprone 'com.google.errorprone:error_prone_core:2.36.0'
+    errorprone 'com.google.errorprone:error_prone_check_api:2.36.0'
+    errorprone 'com.uber.nullaway:nullaway:0.12.3'
+    errorprone 'com.github.ben-manes.caffeine:caffeine:3.1.8'
+    implementation 'org.jspecify:jspecify:1.0.0'
+    implementation 'net.ltgt.gradle:gradle-errorprone-plugin:4.1.0'
+    implementation 'net.ltgt.gradle:gradle-nullaway-plugin:2.2.0'
+
+    // OpenRewrite
+    implementation 'org.openrewrite.rewrite:org.openrewrite.rewrite.gradle.plugin:7.6.1'
+    rewrite platform('org.openrewrite.recipe:rewrite-recipe-bom:3.8.0')
+    rewrite 'org.openrewrite.recipe:rewrite-logging-frameworks'
+    rewrite 'org.openrewrite.recipe:rewrite-static-analysis'
+    rewrite 'org.openrewrite.recipe:rewrite-testing-frameworks'
+
+    // Spotless
+    implementation 'com.diffplug.spotless:spotless-plugin-gradle:7.0.3'
+    implementation 'com.palantir.javaformat:gradle-palantir-java-format:2.67.0'
+
+    // Other
+    testImplementation platform('org.junit:junit-bom:5.9.1')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+jacoco {
+    toolVersion = '0.8.10'
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
+    }
+}
+
+rewrite {
+    configFile = project.getRootProject().file("rewrite.yml")
+
+    activeRecipe("CleanCode")
+    activeRecipe("CommonStaticAnalysis")
+    activeRecipe("MigrateToLog4j2")
+    activeRecipe("NormalizeNullableAnnotationsOnMethods")
+    activeRecipe("MigrateToAssertJ")
+}
+
+spotless {
+    java {
+        ratchetFrom 'origin/main' // Only format files which have changed since origin/main
+        target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
+        importOrder()
+        removeUnusedImports()
+        palantirJavaFormat('2.67.0').style("PALANTIR").formatJavadoc(false)
+        formatAnnotations()
+    }
+}
+
+test {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+
+// ErrorProne + NullAway configuration
+tasks.withType(JavaCompile) {
+    options.errorprone {
+        // ErrorProne checks are enabled as errors by default
+        // Only disable specific noisy ones if needed. E.g.,
+        // disable("UnusedVariable")
+
+        nullaway {
+            annotatedPackages.add("org.example")
+            // Since we already have org.jspecify as a dependency, NullAway will automatically recognize and use JSpecify's @Nullable and @NonNull annotations.
+            error()
+        }
+    }
+}
